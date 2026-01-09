@@ -140,11 +140,15 @@ function removeParticipant(id) {
 }
 
 function selectParticipant(id) {
-    state.currentParticipantId = id;
-    saveToLocalStorage();
-    renderParticipants();
-    updateCurrentParticipantDisplay();
-    updateVotingCards();
+    // Validation: Only allow selection if the user doesn't have an ID yet
+    // or if they are re-selecting their own ID (redundant but safe)
+    if (!state.currentParticipantId) {
+        state.currentParticipantId = id;
+        saveToLocalStorage();
+        updateUI();
+    } else if (state.currentParticipantId !== id) {
+        console.warn("Security: Attempted to switch identity to " + id);
+    }
 }
 
 function renderParticipants() {
@@ -189,7 +193,10 @@ function renderParticipants() {
 
         item.addEventListener('click', (e) => {
             if (!e.target.closest('.participant-remove-small')) {
-                selectParticipant(participant.id);
+                // Only allow clicking to select if no identity is set
+                if (!state.currentParticipantId) {
+                    selectParticipant(participant.id);
+                }
             }
         });
 
@@ -447,10 +454,24 @@ function joinRoom(roomId) {
 }
 
 function updateUI() {
+    // Check if the saved ID still exists in the room
+    if (state.currentParticipantId && !state.participants.find(p => p.id === state.currentParticipantId)) {
+        // If the ID was deleted or doesn't exist, clear it locally to allow re-joining
+        state.currentParticipantId = null;
+        saveToLocalStorage();
+    }
+
     renderParticipants();
     updateCurrentParticipantDisplay();
     updateVotingCards();
     updateStatistics();
+
+    // Hide 'Add Participant' button if the user is already registered
+    if (state.currentParticipantId) {
+        elements.addParticipantBtn.classList.add('hidden');
+    } else {
+        elements.addParticipantBtn.classList.remove('hidden');
+    }
 
     if (state.votesVisible) {
         elements.hideVotesBtn.classList.remove('hidden');
