@@ -247,14 +247,36 @@ body {
 }
 
 .card.selected {
-    border-color: transparent;
+    border-color: var(--color-accent);
     color: white;
-    box-shadow: var(--shadow-xl);
-    transform: translateY(-6px) scale(1.08);
+    box-shadow: 0 0 20px rgba(34, 211, 238, 0.4), var(--shadow-xl);
+    transform: translateY(-8px) scale(1.1);
+    z-index: 10;
 }
 
 .card.selected::before {
     opacity: 1;
+    background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-primary-dark) 100%);
+}
+
+.card.selected::after {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: inherit;
+    background: linear-gradient(135deg, var(--color-accent), transparent, var(--color-primary));
+    z-index: -1;
+    animation: borderRotate 2s linear infinite;
+}
+
+@keyframes borderRotate {
+    0% {
+        filter: hue-rotate(0deg);
+    }
+
+    100% {
+        filter: hue-rotate(360deg);
+    }
 }
 
 .card>* {
@@ -878,7 +900,13 @@ body:not(.app-active) .container {
     display: none !important;
 }
 
-/* Show lobby only when app is not active */
+/* Hide main app when in lobby or nickname screens */
+body:not(.app-active) .header,
+body:not(.app-active) .container {
+    display: none !important;
+}
+
+/* Show overlays only when app is not active */
 body.app-active .lobby-overlay {
     display: none !important;
 }

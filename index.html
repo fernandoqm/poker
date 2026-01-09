@@ -240,8 +240,10 @@
     <div class="lobby-overlay" id="lobbyOverlay">
         <div class="lobby-content">
             <div class="logo-section" style="margin-bottom: 2rem; justify-content: center;">
-                <svg class="app-icon" width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+                <svg class="app-icon" width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2">
+                    <path
+                        d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
                     <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
                     <line x1="12" y1="22.08" x2="12" y2="12" />
                 </svg>
@@ -254,19 +256,22 @@
             <div class="lobby-card">
                 <h3>Votar en una Sala</h3>
                 <p>Crea una nueva sala para tu equipo o únete a una existente.</p>
-                
+
                 <div class="lobby-actions">
                     <button class="btn btn-primary" id="createRoomBtn" style="width: 100%; margin-bottom: 1rem;">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 8px;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" style="margin-right: 8px;">
                             <path d="M12 5v14M5 12h14" />
                         </svg>
                         Crear Nueva Sala
                     </button>
-                    
+
                     <div class="separator"><span>o únete con un ID</span></div>
-                    
+
                     <div class="join-group">
-                        <input type="text" id="roomCodeInput" class="form-input" placeholder="Código de la sala (Ej: alpha-beta)" style="margin-bottom: 0.5rem; text-align: center;">
+                        <input type="text" id="roomCodeInput" class="form-input"
+                            placeholder="Código de la sala (Ej: alpha-beta)"
+                            style="margin-bottom: 0.5rem; text-align: center;">
                         <button class="btn btn-secondary" id="joinRoomBtn" style="width: 100%;">Unirse a Sala</button>
                     </div>
                 </div>
@@ -274,6 +279,41 @@
         </div>
     </div>
 
+    <!-- Nickname Entry Overlay -->
+    <div class="lobby-overlay hidden" id="nicknameOverlay">
+        <div class="lobby-content">
+            <div class="logo-section" style="margin-bottom: 2rem; justify-content: center;">
+                <svg class="app-icon" width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2">
+                    <path
+                        d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+                    <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+                    <line x1="12" y1="22.08" x2="12" y2="12" />
+                </svg>
+                <div style="text-align: left;">
+                    <h1 class="app-title" style="font-size: 1.5rem;">Estimaciones de Equipo</h1>
+                    <p class="app-subtitle">Bienvenido a la Sala</p>
+                </div>
+            </div>
+
+            <div class="lobby-card">
+                <h3>¿Cómo te llamas?</h3>
+                <p>Ingresa tu nombre o nickname para empezar a votar con tu equipo.</p>
+
+                <form id="nicknameForm" class="lobby-actions">
+                    <div class="join-group">
+                        <input type="text" id="nicknameInput" class="form-input" placeholder="Tu nombre artístico..."
+                            required style="margin-bottom: 1rem; text-align: center;">
+                        <button type="submit" class="btn btn-primary" style="width: 100%;">
+                            Empezar a Votar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <script src="app.js"></script>
 </body>
+
 </html>

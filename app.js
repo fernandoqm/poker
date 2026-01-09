@@ -52,11 +52,15 @@ function getAvatarColor(index) {
 }
 
 function saveToLocalStorage() {
-    localStorage.setItem('scrumPokerParticipantId', state.currentParticipantId);
+    if (state.roomId) {
+        localStorage.setItem(`scrumPokerParticipantId_${state.roomId}`, state.currentParticipantId);
+    }
 }
 
 function loadFromLocalStorage() {
-    state.currentParticipantId = localStorage.getItem('scrumPokerParticipantId');
+    if (state.roomId) {
+        state.currentParticipantId = localStorage.getItem(`scrumPokerParticipantId_${state.roomId}`);
+    }
 }
 
 // ===== DOM Elements =====
@@ -82,6 +86,9 @@ const elements = {
     recommendationContent: document.getElementById('recommendationContent'),
     // Lobby Elements
     lobbyOverlay: document.getElementById('lobbyOverlay'),
+    nicknameOverlay: document.getElementById('nicknameOverlay'),
+    nicknameForm: document.getElementById('nicknameForm'),
+    nicknameInput: document.getElementById('nicknameInput'),
     createRoomBtn: document.getElementById('createRoomBtn'),
     joinRoomBtn: document.getElementById('joinRoomBtn'),
     roomCodeInput: document.getElementById('roomCodeInput'),
@@ -111,30 +118,32 @@ function addParticipant(name) {
         color: getAvatarColor(state.participants.length)
     };
 
-    const newParticipants = [...state.participants, participant];
-
-    // If it's the first time this user joins any room, save their ID
-    if (!state.currentParticipantId) {
-        state.currentParticipantId = participant.id;
-        saveToLocalStorage();
-    }
-
-    // Update Firestore
+    // Use arrayUnion for atomic addition - prevents race conditions
     db.collection('rooms').doc(state.roomId).update({
-        participants: newParticipants
+        participants: firebase.firestore.FieldValue.arrayUnion(participant)
+    }).then(() => {
+        // Only set currentParticipantId after successful addition
+        if (!state.currentParticipantId) {
+            state.currentParticipantId = participant.id;
+            saveToLocalStorage();
+            updateUI();
+        }
     }).catch(err => console.error("Error adding participant:", err));
 }
 
 function removeParticipant(id) {
     if (!state.roomId) return;
 
-    const newParticipants = state.participants.filter(p => p.id !== id);
+    const participantToRemove = state.participants.find(p => p.id === id);
+    if (!participantToRemove) return;
+
+    // Remove the vote separately as it's a key in an object, not an array item
     const newVotes = { ...state.votes };
     delete newVotes[id];
 
-    // Update Firestore
+    // Atomic removal of the participant object
     db.collection('rooms').doc(state.roomId).update({
-        participants: newParticipants,
+        participants: firebase.firestore.FieldValue.arrayRemove(participantToRemove),
         votes: newVotes
     }).catch(err => console.error("Error removing participant:", err));
 }
@@ -152,8 +161,7 @@ function selectParticipant(id) {
 }
 
 function renderParticipants() {
-    elements.participantsGrid.innerHTML = '';
-
+    // 1. Handle empty state
     if (state.participants.length === 0) {
         elements.participantsGrid.innerHTML = `
             <div style="text-align: center; padding: 1.5rem; color: var(--color-text-muted); font-size: 0.875rem;">
@@ -163,26 +171,51 @@ function renderParticipants() {
         return;
     }
 
+    // 2. Identify existing DOM elements to avoid full re-render (smart update)
+    const currentNodes = Array.from(elements.participantsGrid.children);
+    const currentIds = currentNodes.map(node => node.dataset.id).filter(id => id);
+
+    // Filter out if it was the empty message
+    if (elements.participantsGrid.querySelector('[style*="text-align: center"]')) {
+        elements.participantsGrid.innerHTML = '';
+    }
+
+    // 3. Update or Add participants
     state.participants.forEach(participant => {
         const hasVoted = state.votes[participant.id] !== undefined;
         const isActive = state.currentParticipantId === participant.id;
         const vote = state.votes[participant.id];
+        const voteDisplayValue = (state.votesVisible && hasVoted) ? `<span class="vote-badge-inline">${vote}</span>` : '';
 
-        const item = document.createElement('div');
-        item.className = `participant-item ${isActive ? 'active' : ''} ${hasVoted ? 'voted' : ''}`;
+        let item = currentNodes.find(node => node.dataset.id === participant.id);
 
-        // Show vote value if votes are visible and participant has voted
-        let voteDisplay = '';
-        if (state.votesVisible && hasVoted) {
-            voteDisplay = `<span class="vote-badge-inline">${vote}</span>`;
+        if (!item) {
+            // New participant, create element
+            item = document.createElement('div');
+            item.dataset.id = participant.id;
+            elements.participantsGrid.appendChild(item);
+
+            item.addEventListener('click', (e) => {
+                if (!e.target.closest('.participant-remove-small')) {
+                    if (!state.currentParticipantId) {
+                        selectParticipant(participant.id);
+                    }
+                }
+            });
         }
 
-        item.innerHTML = `
+        // Update classes and content only if changed (prevents flickering)
+        const newClassName = `participant-item ${isActive ? 'active' : ''} ${hasVoted ? 'voted' : ''}`;
+        if (item.className !== newClassName) {
+            item.className = newClassName;
+        }
+
+        const newHTML = `
             <div class="participant-avatar-small" style="background: ${participant.color}">
                 ${getInitials(participant.name)}
             </div>
             <div class="participant-name-small">${participant.name}</div>
-            ${voteDisplay}
+            ${voteDisplayValue}
             <button class="participant-remove-small" onclick="removeParticipant('${participant.id}')">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <line x1="18" y1="6" x2="6" y2="18"/>
@@ -191,16 +224,17 @@ function renderParticipants() {
             </button>
         `;
 
-        item.addEventListener('click', (e) => {
-            if (!e.target.closest('.participant-remove-small')) {
-                // Only allow clicking to select if no identity is set
-                if (!state.currentParticipantId) {
-                    selectParticipant(participant.id);
-                }
-            }
-        });
+        if (item.innerHTML !== newHTML) {
+            item.innerHTML = newHTML;
+        }
+    });
 
-        elements.participantsGrid.appendChild(item);
+    // 4. Remove elements for participants who left
+    currentNodes.forEach(node => {
+        const id = node.dataset.id;
+        if (id && !state.participants.find(p => p.id === id)) {
+            node.remove();
+        }
     });
 }
 
@@ -435,8 +469,29 @@ function joinRoom(roomId) {
 
             updateUI();
 
-            // Show main app, hide lobby
-            document.body.classList.add('app-active');
+            // Hide Lobby always
+            elements.lobbyOverlay.classList.add('hidden');
+
+            loadFromLocalStorage(); // Try to load identity for THIS room
+
+            if (!state.currentParticipantId) {
+                // Show identity overlay if we don't know who this is
+                elements.nicknameOverlay.classList.remove('hidden');
+                document.body.classList.remove('app-active');
+            } else {
+                // We have an ID, but check if it's still valid in the room
+                const exists = state.participants.find(p => p.id === state.currentParticipantId);
+                if (exists) {
+                    elements.nicknameOverlay.classList.add('hidden');
+                    document.body.classList.add('app-active');
+                } else {
+                    // ID cleared (maybe deleted), show name entry again
+                    state.currentParticipantId = null;
+                    elements.nicknameOverlay.classList.remove('hidden');
+                    document.body.classList.remove('app-active');
+                }
+            }
+
             elements.roomInfoDisplay.style.display = 'flex';
             elements.currentRoomId.textContent = roomId;
 
@@ -529,6 +584,17 @@ function initEventListeners() {
         if (e.key === 'Enter') {
             const code = elements.roomCodeInput.value;
             if (code) joinRoom(code);
+        }
+    });
+
+    // Nickname form
+    elements.nicknameForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const name = elements.nicknameInput.value.trim();
+        if (name) {
+            addParticipant(name);
+            elements.nicknameOverlay.classList.add('hidden');
+            document.body.classList.add('app-active');
         }
     });
 
