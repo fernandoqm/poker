@@ -436,7 +436,7 @@ function joinRoom(roomId) {
             updateUI();
 
             // Show main app, hide lobby
-            elements.lobbyOverlay.classList.add('hidden');
+            document.body.classList.add('app-active');
             elements.roomInfoDisplay.style.display = 'flex';
             elements.currentRoomId.textContent = roomId;
 
@@ -444,6 +444,7 @@ function joinRoom(roomId) {
             window.history.replaceState(null, '', `?room=${roomId}`);
         } else {
             alert('La sala no existe. Verifica el código.');
+            document.body.classList.remove('app-active');
             window.history.replaceState(null, '', window.location.pathname);
         }
     }, (err) => {
