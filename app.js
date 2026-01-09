@@ -2,12 +2,29 @@
 // Professional Scrum Poker - Enhanced JavaScript
 // ============================================
 
+// ===== Firebase Configuration =====
+// TODO: Replace with your actual Firebase configuration from the Firebase Console
+const firebaseConfig = {
+    apiKey: "AIzaSyAuhgYTBqYb0Pq8ykYgT50d7bGFhtWKLv0",
+    authDomain: "pokerplanning-5e23a.firebaseapp.com",
+    projectId: "pokerplanning-5e23a",
+    storageBucket: "pokerplanning-5e23a.firebasestorage.app",
+    messagingSenderId: "399680514377",
+    appId: "1:399680514377:web:566d33b361ae8c1acfd298"
+};
+
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
 // ===== State Management =====
 const state = {
+    roomId: null,
     participants: [],
     currentParticipantId: null,
     votes: {},
-    votesVisible: false
+    votesVisible: false,
+    unsubscribe: null // For Firestore listener
 };
 
 // ===== Avatar Colors =====
@@ -35,18 +52,11 @@ function getAvatarColor(index) {
 }
 
 function saveToLocalStorage() {
-    localStorage.setItem('scrumPokerState', JSON.stringify(state));
+    localStorage.setItem('scrumPokerParticipantId', state.currentParticipantId);
 }
 
 function loadFromLocalStorage() {
-    const saved = localStorage.getItem('scrumPokerState');
-    if (saved) {
-        const loaded = JSON.parse(saved);
-        state.participants = loaded.participants || [];
-        state.currentParticipantId = loaded.currentParticipantId || null;
-        state.votes = loaded.votes || {};
-        state.votesVisible = loaded.votesVisible || false;
-    }
+    state.currentParticipantId = localStorage.getItem('scrumPokerParticipantId');
 }
 
 // ===== DOM Elements =====
@@ -69,7 +79,15 @@ const elements = {
     medianValue: document.getElementById('medianValue'),
     votesCount: document.getElementById('votesCount'),
     recommendationsSection: document.getElementById('recommendationsSection'),
-    recommendationContent: document.getElementById('recommendationContent')
+    recommendationContent: document.getElementById('recommendationContent'),
+    // Lobby Elements
+    lobbyOverlay: document.getElementById('lobbyOverlay'),
+    createRoomBtn: document.getElementById('createRoomBtn'),
+    joinRoomBtn: document.getElementById('joinRoomBtn'),
+    roomCodeInput: document.getElementById('roomCodeInput'),
+    roomInfoDisplay: document.getElementById('roomInfoDisplay'),
+    currentRoomId: document.getElementById('currentRoomId'),
+    copyRoomLink: document.getElementById('copyRoomLink')
 };
 
 // ===== Modal Functions =====
@@ -85,40 +103,40 @@ function closeModal() {
 
 // ===== Participant Functions =====
 function addParticipant(name) {
+    if (!state.roomId) return;
+
     const participant = {
         id: generateId(),
         name: name.trim(),
         color: getAvatarColor(state.participants.length)
     };
 
-    state.participants.push(participant);
+    const newParticipants = [...state.participants, participant];
 
-    // Auto-select first participant
-    if (state.participants.length === 1) {
+    // If it's the first time this user joins any room, save their ID
+    if (!state.currentParticipantId) {
         state.currentParticipantId = participant.id;
+        saveToLocalStorage();
     }
 
-    saveToLocalStorage();
-    renderParticipants();
-    updateCurrentParticipantDisplay();
-    updateStatistics();
+    // Update Firestore
+    db.collection('rooms').doc(state.roomId).update({
+        participants: newParticipants
+    }).catch(err => console.error("Error adding participant:", err));
 }
 
 function removeParticipant(id) {
-    state.participants = state.participants.filter(p => p.id !== id);
-    delete state.votes[id];
+    if (!state.roomId) return;
 
-    // Update current participant if removed
-    if (state.currentParticipantId === id) {
-        state.currentParticipantId = state.participants.length > 0 ? state.participants[0].id : null;
-    }
+    const newParticipants = state.participants.filter(p => p.id !== id);
+    const newVotes = { ...state.votes };
+    delete newVotes[id];
 
-    saveToLocalStorage();
-    renderParticipants();
-    updateCurrentParticipantDisplay();
-    updateVotingCards();
-    updateStatistics();
-    updateRecommendations();
+    // Update Firestore
+    db.collection('rooms').doc(state.roomId).update({
+        participants: newParticipants,
+        votes: newVotes
+    }).catch(err => console.error("Error removing participant:", err));
 }
 
 function selectParticipant(id) {
@@ -191,16 +209,20 @@ function updateCurrentParticipantDisplay() {
 // ===== Voting Functions =====
 function vote(value) {
     if (!state.currentParticipantId) {
-        alert('Por favor selecciona un participante primero');
+        alert('Por favor agrega un participante primero');
+        openModal();
         return;
     }
 
-    state.votes[state.currentParticipantId] = value;
-    saveToLocalStorage();
-    updateVotingCards();
-    renderParticipants();
-    updateStatistics();
-    updateRecommendations();
+    if (!state.roomId) return;
+
+    const newVotes = { ...state.votes };
+    newVotes[state.currentParticipantId] = value;
+
+    // Update Firestore
+    db.collection('rooms').doc(state.roomId).update({
+        votes: newVotes
+    }).catch(err => console.error("Error voting:", err));
 }
 
 function updateVotingCards() {
@@ -219,60 +241,35 @@ function updateVotingCards() {
 
 // ===== Vote Visibility Functions =====
 function hideVotes() {
-    state.votesVisible = false;
-    elements.hideVotesBtn.classList.add('hidden');
-    elements.showVotesBtn.classList.remove('hidden');
-    elements.statistics.classList.add('hidden');
-    elements.recommendationsSection.classList.add('hidden');
-    saveToLocalStorage();
-    renderParticipants();
+    if (!state.roomId) return;
+    db.collection('rooms').doc(state.roomId).update({
+        votesVisible: false
+    });
 }
 
 function showVotes() {
-    state.votesVisible = true;
-    elements.hideVotesBtn.classList.remove('hidden');
-    elements.showVotesBtn.classList.add('hidden');
-    elements.statistics.classList.remove('hidden');
-    saveToLocalStorage();
-    renderParticipants();
-    updateStatistics();
-    updateRecommendations();
+    if (!state.roomId) return;
+    db.collection('rooms').doc(state.roomId).update({
+        votesVisible: true
+    });
 }
 
 function clearVotes() {
-    if (Object.keys(state.votes).length === 0) {
-        return;
-    }
-
+    if (!state.roomId) return;
     if (confirm('¿Limpiar todas las estimaciones de esta ronda?')) {
-        state.votes = {};
-        state.votesVisible = false;
-        elements.hideVotesBtn.classList.add('hidden');
-        elements.showVotesBtn.classList.remove('hidden');
-        elements.statistics.classList.add('hidden');
-        elements.recommendationsSection.classList.add('hidden');
-        saveToLocalStorage();
-        updateVotingCards();
-        renderParticipants();
-        updateStatistics();
+        db.collection('rooms').doc(state.roomId).update({
+            votes: {},
+            votesVisible: false
+        });
     }
 }
 
 function newRound() {
-    // Limpiar votos directamente sin confirmación
-    state.votes = {};
-    state.votesVisible = false;
-    elements.hideVotesBtn.classList.add('hidden');
-    elements.showVotesBtn.classList.remove('hidden');
-    elements.statistics.classList.add('hidden');
-    elements.recommendationsSection.classList.add('hidden');
-    saveToLocalStorage();
-    updateVotingCards();
-    renderParticipants();
-    updateStatistics();
-
-    // Mensaje informativo después de limpiar
-    console.log('✅ Nueva ronda iniciada - todos los votos han sido limpiados');
+    if (!state.roomId) return;
+    db.collection('rooms').doc(state.roomId).update({
+        votes: {},
+        votesVisible: false
+    });
 }
 
 
@@ -387,6 +384,86 @@ function updateRecommendations() {
     elements.recommendationsSection.classList.remove('hidden');
 }
 
+// ===== Room Management Functions =====
+function generateRoomCode() {
+    const adjectives = ['blue', 'green', 'fast', 'smart', 'agile', 'cool', 'zen', 'bright'];
+    const nouns = ['team', 'squad', 'group', 'poker', 'scrum', 'star', 'devs', 'flow'];
+    const rand = () => Math.floor(Math.random() * 8);
+    return `${adjectives[rand()]}-${nouns[rand()]}-${Math.floor(100 + Math.random() * 900)}`;
+}
+
+async function createRoom() {
+    const roomId = generateRoomCode();
+    try {
+        await db.collection('rooms').doc(roomId).set({
+            participants: [],
+            votes: {},
+            votesVisible: false,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        joinRoom(roomId);
+    } catch (err) {
+        alert('Error al crear la sala: ' + err.message);
+    }
+}
+
+function joinRoom(roomId) {
+    if (!roomId) return;
+    roomId = roomId.toLowerCase().trim();
+
+    // Clean up previous listener
+    if (state.unsubscribe) {
+        state.unsubscribe();
+    }
+
+    state.roomId = roomId;
+
+    // Subscribe to Room updates
+    state.unsubscribe = db.collection('rooms').doc(roomId).onSnapshot((doc) => {
+        if (doc.exists) {
+            const data = doc.data();
+            state.participants = data.participants || [];
+            state.votes = data.votes || {};
+            state.votesVisible = data.votesVisible || false;
+
+            updateUI();
+
+            // Show main app, hide lobby
+            elements.lobbyOverlay.classList.add('hidden');
+            elements.roomInfoDisplay.style.display = 'flex';
+            elements.currentRoomId.textContent = roomId;
+
+            // Update URL for sharing
+            window.history.replaceState(null, '', `?room=${roomId}`);
+        } else {
+            alert('La sala no existe. Verifica el código.');
+            window.history.replaceState(null, '', window.location.pathname);
+        }
+    }, (err) => {
+        console.error("Firestore Error:", err);
+        alert('Error al conectar con la sala');
+    });
+}
+
+function updateUI() {
+    renderParticipants();
+    updateCurrentParticipantDisplay();
+    updateVotingCards();
+    updateStatistics();
+
+    if (state.votesVisible) {
+        elements.hideVotesBtn.classList.remove('hidden');
+        elements.showVotesBtn.classList.add('hidden');
+        elements.statistics.classList.remove('hidden');
+        updateRecommendations();
+    } else {
+        elements.hideVotesBtn.classList.add('hidden');
+        elements.showVotesBtn.classList.remove('hidden');
+        elements.statistics.classList.add('hidden');
+        elements.recommendationsSection.classList.add('hidden');
+    }
+}
+
 // ===== Event Listeners =====
 function initEventListeners() {
     // Modal events
@@ -420,6 +497,33 @@ function initEventListeners() {
     // New round
     elements.newRoundBtn.addEventListener('click', newRound);
 
+    // Lobby events
+    elements.createRoomBtn.addEventListener('click', createRoom);
+    elements.joinRoomBtn.addEventListener('click', () => {
+        const code = elements.roomCodeInput.value;
+        if (code) joinRoom(code);
+    });
+    elements.roomCodeInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            const code = elements.roomCodeInput.value;
+            if (code) joinRoom(code);
+        }
+    });
+
+    // Copy link
+    elements.copyRoomLink.addEventListener('click', () => {
+        const url = window.location.href;
+        navigator.clipboard.writeText(url).then(() => {
+            const originalColor = elements.currentRoomId.style.color;
+            elements.currentRoomId.textContent = '¡Copiado!';
+            elements.currentRoomId.style.color = 'var(--color-accent-light)';
+            setTimeout(() => {
+                elements.currentRoomId.textContent = state.roomId;
+                elements.currentRoomId.style.color = originalColor;
+            }, 2000);
+        });
+    });
+
     // Keyboard shortcuts
     document.addEventListener('keydown', (e) => {
         // Escape key to close modal
@@ -431,24 +535,14 @@ function initEventListeners() {
 
 // ===== Initialization =====
 function init() {
-    loadFromLocalStorage();
     initEventListeners();
-    renderParticipants();
-    updateCurrentParticipantDisplay();
-    updateVotingCards();
-    updateStatistics(); // Initialize vote count
+    loadFromLocalStorage();
 
-    // Set initial vote visibility state
-    if (state.votesVisible) {
-        elements.hideVotesBtn.classList.remove('hidden');
-        elements.showVotesBtn.classList.add('hidden');
-        elements.statistics.classList.remove('hidden');
-        updateRecommendations();
-    } else {
-        elements.hideVotesBtn.classList.add('hidden');
-        elements.showVotesBtn.classList.remove('hidden');
-        elements.statistics.classList.add('hidden');
-        elements.recommendationsSection.classList.add('hidden');
+    // Check for room in URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const roomFromUrl = urlParams.get('room');
+    if (roomFromUrl) {
+        joinRoom(roomFromUrl);
     }
 }
 

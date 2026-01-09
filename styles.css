@@ -834,3 +834,108 @@ body {
         padding: var(--spacing-sm);
     }
 }
+
+/* ===== Lobby Overlay ===== */
+.lobby-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--color-bg);
+    background-image: 
+        radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.2) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, rgba(34, 211, 238, 0.15) 0px, transparent 50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+}
+
+.lobby-content {
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+    padding: var(--spacing-lg);
+    animation: modalSlideIn 400ms ease-out;
+}
+
+.lobby-card {
+    background: var(--color-surface);
+    border-radius: var(--radius-xl);
+    padding: 2.5rem 2rem;
+    box-shadow: var(--shadow-xl);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.lobby-card h3 {
+    font-size: 1.5rem;
+    color: var(--color-text-primary);
+    margin-bottom: 0.75rem;
+}
+
+.lobby-card p {
+    color: var(--color-text-secondary);
+    font-size: 0.875rem;
+    margin-bottom: 2rem;
+}
+
+.separator {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 1.5rem 0;
+    color: var(--color-text-muted);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.separator::before,
+.separator::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.separator span {
+    padding: 0 10px;
+}
+
+/* ===== Room Info in Header ===== */
+.room-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.room-label {
+    font-size: 0.75rem;
+    color: var(--color-text-secondary);
+    font-weight: 500;
+}
+
+.room-id {
+    font-family: monospace;
+    font-size: 0.875rem;
+    color: var(--color-accent);
+    font-weight: 700;
+}
+
+.btn-icon-tiny {
+    background: transparent;
+    border: none;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    padding: 2px;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.btn-icon-tiny:hover {
+    color: var(--color-accent);
+    background: rgba(34, 211, 238, 0.1);
+}
