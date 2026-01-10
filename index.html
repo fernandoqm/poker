@@ -76,19 +76,19 @@
                         </div>
                     </div>
                     <div class="cards-grid" id="cardsContainer">
-                        <button class="card" data-value="0">0</button>
-                        <button class="card" data-value="0.5">½</button>
-                        <button class="card" data-value="1">1</button>
-                        <button class="card" data-value="2">2</button>
-                        <button class="card" data-value="3">3</button>
-                        <button class="card" data-value="5">5</button>
-                        <button class="card" data-value="8">8</button>
-                        <button class="card" data-value="13">13</button>
-                        <button class="card" data-value="20">20</button>
-                        <button class="card" data-value="40">40</button>
-                        <button class="card" data-value="100">100</button>
-                        <button class="card card-special" data-value="?">?</button>
-                        <button class="card card-special" data-value="coffee">☕</button>
+                        <button class="card" data-value="0"><span>0</span></button>
+                        <button class="card" data-value="0.5"><span>½</span></button>
+                        <button class="card" data-value="1"><span>1</span></button>
+                        <button class="card" data-value="2"><span>2</span></button>
+                        <button class="card" data-value="3"><span>3</span></button>
+                        <button class="card" data-value="5"><span>5</span></button>
+                        <button class="card" data-value="8"><span>8</span></button>
+                        <button class="card" data-value="13"><span>13</span></button>
+                        <button class="card" data-value="20"><span>20</span></button>
+                        <button class="card" data-value="40"><span>40</span></button>
+                        <button class="card" data-value="100"><span>100</span></button>
+                        <button class="card card-special" data-value="?"><span>?</span></button>
+                        <button class="card card-special" data-value="coffee"><span>☕</span></button>
                     </div>
                 </section>
 
@@ -104,6 +104,13 @@
                             </svg>
                             Recomendaciones
                         </h3>
+                        <button class="btn-refresh" id="refreshRecommendationsBtn" title="Refrescar recomendaciones">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M23 4v6h-6"></path>
+                                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                            </svg>
+                        </button>
                     </div>
                     <div class="recommendation-content" id="recommendationContent">
                         <!-- Recommendations will appear here -->

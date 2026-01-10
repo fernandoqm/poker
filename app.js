@@ -84,6 +84,7 @@ const elements = {
     votesCount: document.getElementById('votesCount'),
     recommendationsSection: document.getElementById('recommendationsSection'),
     recommendationContent: document.getElementById('recommendationContent'),
+    refreshRecommendationsBtn: document.getElementById('refreshRecommendationsBtn'),
     // Lobby Elements
     lobbyOverlay: document.getElementById('lobbyOverlay'),
     nicknameOverlay: document.getElementById('nicknameOverlay'),
@@ -570,6 +571,15 @@ function initEventListeners() {
     // Vote visibility
     elements.hideVotesBtn.addEventListener('click', hideVotes);
     elements.showVotesBtn.addEventListener('click', showVotes);
+
+    // Refresh recommendations
+    elements.refreshRecommendationsBtn.addEventListener('click', () => {
+        elements.refreshRecommendationsBtn.classList.add('rotating');
+        updateRecommendations();
+        setTimeout(() => {
+            elements.refreshRecommendationsBtn.classList.remove('rotating');
+        }, 500);
+    });
 
     // New round
     elements.newRoundBtn.addEventListener('click', newRound);
