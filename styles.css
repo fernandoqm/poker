@@ -211,6 +211,48 @@ body {
     display: grid;
     grid-template-columns: repeat(8, 1fr);
     gap: 0.375rem;
+    max-height: 500px;
+    overflow: hidden;
+    transition: max-height 0.3s ease, opacity 0.3s ease, margin 0.3s ease;
+}
+
+.cards-grid.collapsed {
+    max-height: 0;
+    opacity: 0;
+    margin-top: 0;
+}
+
+.section-header-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.btn-toggle-section {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-sm);
+    color: var(--color-text-muted);
+    cursor: pointer;
+    padding: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-base);
+}
+
+.btn-toggle-section:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--color-accent);
+    border-color: var(--color-accent);
+}
+
+.btn-toggle-section .icon-chevron {
+    transition: transform 0.3s ease;
+}
+
+.btn-toggle-section.collapsed .icon-chevron {
+    transform: rotate(180deg);
 }
 
 .card {

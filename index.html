@@ -55,7 +55,7 @@
             <!-- Left Column: Voting Cards First -->
             <div class="left-column">
                 <!-- Voting Cards Section -->
-                <section class="voting-section">
+                <section class="voting-section" id="votingSection">
                     <div class="section-header-compact">
                         <h2 class="section-title">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -66,13 +66,20 @@
                             </svg>
                             Tarjetas de Estimación
                         </h2>
-                        <div class="current-participant" id="currentParticipant">
+                        <div class="section-header-actions">
+                            <button class="btn-toggle-section" id="toggleCardsBtn" title="Ocultar/Mostrar tarjetas">
+                                <svg class="icon-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="18 15 12 9 6 15"></polyline>
+                                </svg>
+                            </button>
+                            <div class="current-participant" id="currentParticipant">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="2">
                                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                                 <circle cx="12" cy="7" r="4" />
                             </svg>
                             <span class="value" id="currentParticipantName">Selecciona participante</span>
+                            </div>
                         </div>
                     </div>
                     <div class="cards-grid" id="cardsContainer">
@@ -309,7 +316,7 @@
 
                 <form id="nicknameForm" class="lobby-actions">
                     <div class="join-group">
-                        <input type="text" id="nicknameInput" class="form-input" placeholder="Tu nombre artístico..."
+                        <input type="text" id="nicknameInput" class="form-input" placeholder="Tu nombre..."
                             required style="margin-bottom: 1rem; text-align: center;">
                         <button type="submit" class="btn btn-primary" style="width: 100%;">
                             Empezar a Votar

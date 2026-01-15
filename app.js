@@ -85,6 +85,9 @@ const elements = {
     recommendationsSection: document.getElementById('recommendationsSection'),
     recommendationContent: document.getElementById('recommendationContent'),
     refreshRecommendationsBtn: document.getElementById('refreshRecommendationsBtn'),
+    votingSection: document.getElementById('votingSection'),
+    toggleCardsBtn: document.getElementById('toggleCardsBtn'),
+    cardsGridContainer: document.getElementById('cardsContainer'),
     // Lobby Elements
     lobbyOverlay: document.getElementById('lobbyOverlay'),
     nicknameOverlay: document.getElementById('nicknameOverlay'),
@@ -113,23 +116,30 @@ function closeModal() {
 function addParticipant(name) {
     if (!state.roomId) return;
 
+    // Prevent duplicate registration if already registering
+    if (state.currentParticipantId) return;
+
     const participant = {
         id: generateId(),
         name: name.trim(),
         color: getAvatarColor(state.participants.length)
     };
 
+    // Set ID immediately BEFORE Firestore call to prevent race condition with onSnapshot
+    state.currentParticipantId = participant.id;
+    saveToLocalStorage();
+
     // Use arrayUnion for atomic addition - prevents race conditions
     db.collection('rooms').doc(state.roomId).update({
         participants: firebase.firestore.FieldValue.arrayUnion(participant)
     }).then(() => {
-        // Only set currentParticipantId after successful addition
-        if (!state.currentParticipantId) {
-            state.currentParticipantId = participant.id;
-            saveToLocalStorage();
-            updateUI();
-        }
-    }).catch(err => console.error("Error adding participant:", err));
+        updateUI();
+    }).catch(err => {
+        // Rollback on error
+        state.currentParticipantId = null;
+        saveToLocalStorage();
+        console.error("Error adding participant:", err);
+    });
 }
 
 function removeParticipant(id) {
@@ -314,7 +324,13 @@ function newRound() {
     });
 }
 
+function toggleCardsSection() {
+    const cardsGrid = elements.cardsGridContainer;
+    const toggleBtn = elements.toggleCardsBtn;
 
+    cardsGrid.classList.toggle('collapsed');
+    toggleBtn.classList.toggle('collapsed');
+}
 
 // ===== Statistics Functions =====
 function updateStatistics() {
@@ -581,6 +597,9 @@ function initEventListeners() {
         }, 500);
     });
 
+    // Toggle voting cards visibility
+    elements.toggleCardsBtn.addEventListener('click', toggleCardsSection);
+
     // New round
     elements.newRoundBtn.addEventListener('click', newRound);
 
@@ -600,6 +619,9 @@ function initEventListeners() {
     // Nickname form
     elements.nicknameForm.addEventListener('submit', (e) => {
         e.preventDefault();
+        // Prevent double submission
+        if (state.currentParticipantId) return;
+
         const name = elements.nicknameInput.value.trim();
         if (name) {
             addParticipant(name);
