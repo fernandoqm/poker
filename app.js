@@ -53,13 +53,18 @@ function getAvatarColor(index) {
 
 function saveToLocalStorage() {
     if (state.roomId) {
-        localStorage.setItem(`scrumPokerParticipantId_${state.roomId}`, state.currentParticipantId);
+        if (state.currentParticipantId) {
+            localStorage.setItem(`scrumPokerParticipantId_${state.roomId}`, state.currentParticipantId);
+        } else {
+            localStorage.removeItem(`scrumPokerParticipantId_${state.roomId}`);
+        }
     }
 }
 
 function loadFromLocalStorage() {
     if (state.roomId) {
-        state.currentParticipantId = localStorage.getItem(`scrumPokerParticipantId_${state.roomId}`);
+        const savedId = localStorage.getItem(`scrumPokerParticipantId_${state.roomId}`);
+        state.currentParticipantId = savedId || null;
     }
 }
 
