@@ -318,6 +318,15 @@ function clearVotes() {
 
 function newRound() {
     if (!state.roomId) return;
+
+    // Only ask for confirmation if there are votes
+    const voteCount = Object.keys(state.votes).length;
+    if (voteCount > 0) {
+        if (!confirm(`¿Iniciar nueva ronda? Se borrarán ${voteCount} voto(s).`)) {
+            return;
+        }
+    }
+
     db.collection('rooms').doc(state.roomId).update({
         votes: {},
         votesVisible: false
