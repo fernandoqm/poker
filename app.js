@@ -485,6 +485,9 @@ function joinRoom(roomId) {
 
     state.roomId = roomId;
 
+    // Load identity BEFORE subscribing to prevent showing nickname overlay unnecessarily
+    loadFromLocalStorage();
+
     // Subscribe to Room updates
     state.unsubscribe = db.collection('rooms').doc(roomId).onSnapshot((doc) => {
         if (doc.exists) {
@@ -497,8 +500,6 @@ function joinRoom(roomId) {
 
             // Hide Lobby always
             elements.lobbyOverlay.classList.add('hidden');
-
-            loadFromLocalStorage(); // Try to load identity for THIS room
 
             if (!state.currentParticipantId) {
                 // Show identity overlay if we don't know who this is
