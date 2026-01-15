@@ -78,6 +78,7 @@ const elements = {
     modalOverlay: document.getElementById('modalOverlay'),
     cancelBtn: document.getElementById('cancelBtn'),
     participantsGrid: document.getElementById('participantsGrid'),
+    clearAllParticipantsBtn: document.getElementById('clearAllParticipantsBtn'),
     currentParticipantName: document.getElementById('currentParticipantName'),
     cardsContainer: document.getElementById('cardsContainer'),
     hideVotesBtn: document.getElementById('hideVotesBtn'),
@@ -162,6 +163,27 @@ function removeParticipant(id) {
         participants: firebase.firestore.FieldValue.arrayRemove(participantToRemove),
         votes: newVotes
     }).catch(err => console.error("Error removing participant:", err));
+}
+
+function clearAllParticipants() {
+    if (!state.roomId) return;
+
+    const count = state.participants.length;
+    if (count === 0) return;
+
+    if (!confirm(`¿Eliminar todos los participantes? Se borrarán ${count} participante(s) y sus votos.`)) {
+        return;
+    }
+
+    // Clear current user's identity
+    state.currentParticipantId = null;
+    saveToLocalStorage();
+
+    // Clear all participants and votes
+    db.collection('rooms').doc(state.roomId).update({
+        participants: [],
+        votes: {}
+    }).catch(err => console.error("Error clearing participants:", err));
 }
 
 function selectParticipant(id) {
@@ -577,6 +599,7 @@ function updateUI() {
 function initEventListeners() {
     // Modal events
     elements.addParticipantBtn.addEventListener('click', openModal);
+    elements.clearAllParticipantsBtn.addEventListener('click', clearAllParticipants);
     elements.modalClose.addEventListener('click', closeModal);
     elements.modalOverlay.addEventListener('click', closeModal);
     elements.cancelBtn.addEventListener('click', closeModal);

@@ -706,6 +706,19 @@ body {
     box-shadow: var(--shadow-md);
 }
 
+.btn-icon.btn-delete-all {
+    background: rgba(239, 68, 68, 0.15);
+    color: var(--color-danger);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.btn-icon.btn-delete-all:hover {
+    background: var(--color-danger);
+    color: white;
+    transform: scale(1.1);
+    box-shadow: var(--shadow-md);
+}
+
 .btn-icon.btn-danger:hover {
     background: var(--color-danger);
     color: white;
