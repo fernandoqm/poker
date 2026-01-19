@@ -219,7 +219,29 @@ function renderParticipants() {
     }
 
     // 3. Update or Add participants
-    state.participants.forEach(participant => {
+    let participantsToRender = [...state.participants];
+
+    // Sort by vote if visible
+    if (state.votesVisible) {
+        participantsToRender.sort((a, b) => {
+            const voteA = state.votes[a.id];
+            const voteB = state.votes[b.id];
+            
+            // Handle non-numeric votes (like '?') or missing votes
+            // We'll treat non-numeric as 0 for sorting purposes, or put them at the end.
+            // Let's use parseFloat. If NaN (e.g. coffee cup), treat as -1 so they go last?
+            // Or just treat as 0.
+            const valA = parseFloat(voteA);
+            const valB = parseFloat(voteB);
+            
+            const numA = isNaN(valA) ? 0 : valA;
+            const numB = isNaN(valB) ? 0 : valB;
+            
+            return numB - numA;
+        });
+    }
+
+    participantsToRender.forEach(participant => {
         const hasVoted = state.votes[participant.id] !== undefined;
         const isActive = state.currentParticipantId === participant.id;
         const vote = state.votes[participant.id];
@@ -231,8 +253,6 @@ function renderParticipants() {
             // New participant, create element
             item = document.createElement('div');
             item.dataset.id = participant.id;
-            elements.participantsGrid.appendChild(item);
-
             item.addEventListener('click', (e) => {
                 if (!e.target.closest('.participant-remove-small')) {
                     if (!state.currentParticipantId) {
@@ -241,6 +261,9 @@ function renderParticipants() {
                 }
             });
         }
+        
+        // ALWAYS append to ensure order matches sorted array
+        elements.participantsGrid.appendChild(item);
 
         // Update classes and content only if changed (prevents flickering)
         const newClassName = `participant-item ${isActive ? 'active' : ''} ${hasVoted ? 'voted' : ''}`;
