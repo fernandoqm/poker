@@ -309,15 +309,19 @@ body {
   bottom: calc(100% + 10px);
   left: 50%;
   transform: translateX(-50%);
-  background: #1a2535;
-  border: 1px solid rgba(99, 102, 241, 0.4);
+  background: #0b1120;
+  border: 1px solid var(--color-accent);
   border-radius: var(--radius-md);
   padding: 0.5rem 0.75rem;
-  width: 200px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
-  z-index: 100;
+  width: 210px;
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.8),
+    0 8px 32px rgba(0, 0, 0, 0.9),
+    0 2px 8px rgba(0, 0, 0, 0.6);
+  z-index: 200;
   pointer-events: none;
   text-align: left;
+  isolation: isolate;
 }
 
 .card-tooltip::after {
@@ -327,7 +331,7 @@ body {
   left: 50%;
   transform: translateX(-50%);
   border: 6px solid transparent;
-  border-top-color: rgba(99, 102, 241, 0.4);
+  border-top-color: var(--color-accent);
 }
 
 .card:hover .card-tooltip {
@@ -344,7 +348,7 @@ body {
   top: auto;
   bottom: 100%;
   border-top-color: transparent;
-  border-bottom-color: rgba(99, 102, 241, 0.4);
+  border-bottom-color: var(--color-accent);
 }
 
 .tooltip-row {
@@ -377,6 +381,7 @@ body {
   border-color: var(--color-accent);
   transform: translateY(-4px) scale(1.05);
   box-shadow: var(--shadow-xl);
+  z-index: 150;
 }
 
 .card.selected {
@@ -1231,4 +1236,87 @@ body.app-active .lobby-overlay {
 .btn-icon-tiny:hover {
   color: var(--color-accent);
   background: rgba(34, 211, 238, 0.1);
+}
+
+/* ===== Reference Table Section ===== */
+.reference-table-section {
+  background: var(--color-surface);
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-lg);
+  box-shadow: var(--shadow-lg);
+  margin-bottom: var(--spacing-lg);
+}
+
+.ref-table-wrapper {
+  overflow-x: auto;
+}
+
+.ref-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+}
+
+.ref-table thead tr {
+  background: rgba(99, 102, 241, 0.15);
+  border-bottom: 2px solid rgba(99, 102, 241, 0.3);
+}
+
+.ref-table th {
+  padding: 0.6rem 0.75rem;
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.ref-table td {
+  padding: 0.5rem 0.75rem;
+  text-align: center;
+  color: var(--color-text-secondary);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.ref-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.ref-points {
+  font-weight: 800;
+  font-size: 1rem;
+  color: var(--color-text-primary) !important;
+  width: 60px;
+}
+
+/* Row color levels */
+.ref-row-trivial {
+  background: rgba(34, 211, 238, 0.03);
+}
+.ref-row-trivial:hover { background: rgba(34, 211, 238, 0.07); }
+
+.ref-row-low {
+  background: rgba(52, 211, 153, 0.05);
+}
+.ref-row-low:hover { background: rgba(52, 211, 153, 0.1); }
+
+.ref-row-medium {
+  background: rgba(251, 191, 36, 0.05);
+}
+.ref-row-medium:hover { background: rgba(251, 191, 36, 0.1); }
+
+.ref-row-high {
+  background: rgba(251, 146, 60, 0.07);
+}
+.ref-row-high:hover { background: rgba(251, 146, 60, 0.13); }
+
+.ref-row-critical {
+  background: rgba(248, 113, 113, 0.08);
+}
+.ref-row-critical:hover { background: rgba(248, 113, 113, 0.14); }
+
+.ref-table tbody tr {
+  transition: background var(--transition-fast);
 }
