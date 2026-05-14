@@ -1,342 +1,729 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Estimaciones de Equipo - Planning Poker</title>
-    <meta name="description" content="Herramienta profesional de Planning Poker para estimaciones ágiles de equipo">
-    <link rel="stylesheet" href="styles.css">
+    <meta
+      name="description"
+      content="Herramienta profesional de Planning Poker para estimaciones ágiles de equipo"
+    />
+    <link rel="stylesheet" href="styles.css" />
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-</head>
+  </head>
 
-<body>
+  <body>
     <!-- Header -->
     <header class="header">
-        <div class="header-content">
-            <div class="logo-section">
-                <svg class="app-icon" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                    stroke-width="2">
-                    <path
-                        d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
-                    <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
-                    <line x1="12" y1="22.08" x2="12" y2="12" />
-                </svg>
-                <div>
-                    <h1 class="app-title">Estimaciones de Equipo</h1>
-                    <p class="app-subtitle">Planning Poker Profesional</p>
-                </div>
-            </div>
-            <div class="room-info" id="roomInfoDisplay" style="display: none;">
-                <span class="room-label">Sala:</span>
-                <span class="room-id" id="currentRoomId">---</span>
-                <button class="btn-icon-tiny" id="copyRoomLink" title="Copiar enlace de la sala">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
-                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
-                    </svg>
-                </button>
-            </div>
-            <button class="btn btn-new-round" id="newRoundBtn">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polyline points="23 4 23 10 17 10" />
-                    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
-                </svg>
-                Nueva Ronda
-            </button>
+      <div class="header-content">
+        <div class="logo-section">
+          <svg
+            class="app-icon"
+            width="40"
+            height="40"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path
+              d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"
+            />
+            <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+            <line x1="12" y1="22.08" x2="12" y2="12" />
+          </svg>
+          <div>
+            <h1 class="app-title">Estimaciones de Equipo</h1>
+            <p class="app-subtitle">Planning Poker Profesional</p>
+          </div>
         </div>
+        <div class="room-info" id="roomInfoDisplay" style="display: none">
+          <span class="room-label">Sala:</span>
+          <span class="room-id" id="currentRoomId">---</span>
+          <button
+            class="btn-icon-tiny"
+            id="copyRoomLink"
+            title="Copiar enlace de la sala"
+          >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path
+                d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"
+              ></path>
+              <path
+                d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"
+              ></path>
+            </svg>
+          </button>
+        </div>
+        <button class="btn btn-new-round" id="newRoundBtn">
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <polyline points="23 4 23 10 17 10" />
+            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+          </svg>
+          Nueva Ronda
+        </button>
+      </div>
     </header>
 
     <div class="container">
-        <!-- Main Grid Layout -->
-        <div class="main-grid">
-            <!-- Left Column: Voting Cards First -->
-            <div class="left-column">
-                <!-- Voting Cards Section -->
-                <section class="voting-section" id="votingSection">
-                    <div class="section-header-compact">
-                        <h2 class="section-title">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2">
-                                <rect x="2" y="5" width="20" height="14" rx="2" />
-                                <line x1="8" y1="2" x2="8" y2="5" />
-                                <line x1="16" y1="2" x2="16" y2="5" />
-                            </svg>
-                            Tarjetas de Estimación
-                        </h2>
-                        <div class="section-header-actions">
-                            <button class="btn-toggle-section" id="toggleCardsBtn" title="Ocultar/Mostrar tarjetas">
-                                <svg class="icon-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <polyline points="18 15 12 9 6 15"></polyline>
-                                </svg>
-                            </button>
-                            <div class="current-participant" id="currentParticipant">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2">
-                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                                <circle cx="12" cy="7" r="4" />
-                            </svg>
-                            <span class="value" id="currentParticipantName">Selecciona participante</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="cards-grid" id="cardsContainer">
-                        <button class="card" data-value="0"><span>0</span></button>
-                        <button class="card" data-value="0.5"><span>½</span></button>
-                        <button class="card" data-value="1"><span>1</span></button>
-                        <button class="card" data-value="2"><span>2</span></button>
-                        <button class="card" data-value="3"><span>3</span></button>
-                        <button class="card" data-value="5"><span>5</span></button>
-                        <button class="card" data-value="8"><span>8</span></button>
-                        <button class="card" data-value="13"><span>13</span></button>
-                        <button class="card" data-value="20"><span>20</span></button>
-                        <button class="card" data-value="40"><span>40</span></button>
-                        <button class="card" data-value="100"><span>100</span></button>
-                        <button class="card card-special" data-value="?"><span>?</span></button>
-                        <button class="card card-special" data-value="coffee"><span>☕</span></button>
-                    </div>
-                </section>
-
-                <!-- Recommendations Section -->
-                <section class="recommendations-section hidden" id="recommendationsSection">
-                    <div class="section-header-compact">
-                        <h3 class="section-title-small">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2">
-                                <circle cx="12" cy="12" r="10" />
-                                <path d="M12 16v-4" />
-                                <path d="M12 8h.01" />
-                            </svg>
-                            Recomendaciones
-                        </h3>
-                        <button class="btn-refresh" id="refreshRecommendationsBtn" title="Refrescar recomendaciones">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2">
-                                <path d="M23 4v6h-6"></path>
-                                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
-                            </svg>
-                        </button>
-                    </div>
-                    <div class="recommendation-content" id="recommendationContent">
-                        <!-- Recommendations will appear here -->
-                    </div>
-                </section>
+      <!-- Main Grid Layout -->
+      <div class="main-grid">
+        <!-- Left Column: Voting Cards First -->
+        <div class="left-column">
+          <!-- Voting Cards Section -->
+          <section class="voting-section" id="votingSection">
+            <div class="section-header-compact">
+              <h2 class="section-title">
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <rect x="2" y="5" width="20" height="14" rx="2" />
+                  <line x1="8" y1="2" x2="8" y2="5" />
+                  <line x1="16" y1="2" x2="16" y2="5" />
+                </svg>
+                Tarjetas de Estimación
+              </h2>
+              <div class="section-header-actions">
+                <button
+                  class="btn-toggle-section"
+                  id="toggleCardsBtn"
+                  title="Ocultar/Mostrar tarjetas"
+                >
+                  <svg
+                    class="icon-chevron"
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <polyline points="18 15 12 9 6 15"></polyline>
+                  </svg>
+                </button>
+                <div class="current-participant" id="currentParticipant">
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                  </svg>
+                  <span class="value" id="currentParticipantName"
+                    >Selecciona participante</span
+                  >
+                </div>
+              </div>
             </div>
-
-            <!-- Right Column: Stats & Participants -->
-            <div class="right-column">
-                <!-- Vote Count & Statistics Section -->
-                <section class="results-section">
-                    <div class="section-header-compact">
-                        <h2 class="section-title">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2">
-                                <path d="M3 3v18h18" />
-                                <path d="m19 9-5 5-4-4-3 3" />
-                            </svg>
-                            Estadísticas
-                        </h2>
-                    </div>
-
-                    <!-- Vote Visibility Toggle Buttons -->
-                    <div class="vote-toggle-section">
-                        <button class="btn btn-toggle-votes hidden" id="hideVotesBtn">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2">
-                                <path
-                                    d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
-                                <line x1="1" y1="1" x2="23" y2="23" />
-                            </svg>
-                            Ocultar Votos
-                        </button>
-                        <button class="btn btn-toggle-votes btn-show-votes" id="showVotesBtn">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2">
-                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                                <circle cx="12" cy="12" r="3" />
-                            </svg>
-                            Ver Votos
-                        </button>
-                    </div>
-
-                    <!-- Vote Count - Always Visible -->
-                    <div class="vote-count-section">
-                        <div class="stat-compact-single">
-                            <div class="stat-icon">✓</div>
-                            <div>
-                                <div class="stat-label-compact">Votos</div>
-                                <div class="stat-value-compact" id="votesCount">-</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Statistics Cards - Hidden until "Ver Votos" -->
-                    <div class="stats-compact hidden" id="statistics">
-                        <div class="stat-compact">
-                            <div class="stat-icon">📊</div>
-                            <div>
-                                <div class="stat-label-compact">Promedio</div>
-                                <div class="stat-value-compact" id="averageValue">-</div>
-                            </div>
-                        </div>
-                        <div class="stat-compact">
-                            <div class="stat-icon">📈</div>
-                            <div>
-                                <div class="stat-label-compact">Mediana</div>
-                                <div class="stat-value-compact" id="medianValue">-</div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Participants Section (Always Visible - At Bottom) -->
-                <section class="participants-section" id="participantsSection">
-                    <div class="section-header-compact">
-                        <h2 class="section-title">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2">
-                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                                <circle cx="9" cy="7" r="4" />
-                                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-                                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                            </svg>
-                            Equipo
-                        </h2>
-                        <button class="btn-icon btn-add" id="addParticipantBtn" title="Agregar Participante">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2">
-                                <circle cx="12" cy="12" r="10" />
-                                <line x1="12" y1="8" x2="12" y2="16" />
-                                <line x1="8" y1="12" x2="16" y2="12" />
-                            </svg>
-                        </button>
-                        <button class="btn-icon btn-delete-all" id="clearAllParticipantsBtn" title="Eliminar todos los participantes">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2">
-                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                                <circle cx="9" cy="7" r="4" />
-                                <line x1="18" y1="8" x2="23" y2="13" />
-                                <line x1="23" y1="8" x2="18" y2="13" />
-                            </svg>
-                        </button>
-                    </div>
-                    <div class="participants-list" id="participantsGrid">
-                        <!-- Participants will be added here -->
-                    </div>
-                </section>
+            <div class="cards-grid" id="cardsContainer">
+              <button class="card" data-value="0">
+                <span>0</span>
+                <div class="card-tooltip">
+                  <div class="tooltip-row">
+                    <span class="tooltip-label">📌 Esfuerzo:</span> Sin esfuerzo
+                  </div>
+                  <div class="tooltip-row">
+                    <span class="tooltip-label">⏱ Tiempo:</span> Trivial
+                  </div>
+                  <div class="tooltip-row">
+                    <span class="tooltip-label">🧩 Complejidad:</span> Ninguna
+                  </div>
+                  <div class="tooltip-row">
+                    <span class="tooltip-label">⚠️ Riesgo:</span> Ninguno
+                  </div>
+                </div>
+              </button>
+              <button class="card" data-value="0.5">
+                <span>½</span>
+                <div class="card-tooltip">
+                  <div class="tooltip-row">
+                    <span class="tooltip-label">📌 Esfuerzo:</span> Mínimo
+                  </div>
+                  <div class="tooltip-row">
+                    <span class="tooltip-label">⏱ Tiempo:</span> &lt; 1 Hora
+                  </div>
+                  <div class="tooltip-row">
+                    <span class="tooltip-label">🧩 Complejidad:</span> Poca
+                  </div>
+                  <div class="tooltip-row">
+                    <span class="tooltip-label">⚠️ Riesgo:</span> Ninguno
+                  </div>
+                </div>
+              </button>
+              <button class="card" data-value="1">
+                <span>1</span>
+                <div class="card-tooltip">
+                  <div class="tooltip-row">
+                    <span class="tooltip-label">📌 Esfuerzo:</span> Mínimo
+                  </div>
+                  <div class="tooltip-row">
+                    <span class="tooltip-label">⏱ Tiempo:</span> 1 Hora
+                  </div>
+                  <div class="tooltip-row">
+                    <span class="tooltip-label">🧩 Complejidad:</span> Poca
+                  </div>
+                  <div class="tooltip-row">
+                    <span class="tooltip-label">⚠️ Riesgo:</span> Ninguno
+                  </div>
+                </div>
+              </button>
+              <button class="card" data-value="2">
+                <span>2</span>
+                <div class="card-tooltip">
+                  <div class="tooltip-row">
+                    <span class="tooltip-label">📌 Esfuerzo:</span> Mínimo
+                  </div>
+                  <div class="tooltip-row">
+                    <span class="tooltip-label">⏱ Tiempo:</span> Varias Horas
+                  </div>
+                  <div class="tooltip-row">
+                    <span class="tooltip-label">🧩 Complejidad:</span> Poca
+                  </div>
+                  <div class="tooltip-row">
+                    <span class="tooltip-label">⚠️ Riesgo:</span> Ninguno
+                  </div>
+                </div>
+              </button>
+              <button class="card" data-value="3">
+                <span>3</span>
+                <div class="card-tooltip">
+                  <div class="tooltip-row">
+                    <span class="tooltip-label">📌 Esfuerzo:</span> Leve
+                  </div>
+                  <div class="tooltip-row">
+                    <span class="tooltip-label">⏱ Tiempo:</span> 1 Día
+                  </div>
+                  <div class="tooltip-row">
+                    <span class="tooltip-label">🧩 Complejidad:</span> Baja
+                  </div>
+                  <div class="tooltip-row">
+                    <span class="tooltip-label">⚠️ Riesgo:</span> Bajo
+                  </div>
+                </div>
+              </button>
+              <button class="card" data-value="5">
+                <span>5</span>
+                <div class="card-tooltip">
+                  <div class="tooltip-row">
+                    <span class="tooltip-label">📌 Esfuerzo:</span> Moderado
+                  </div>
+                  <div class="tooltip-row">
+                    <span class="tooltip-label">⏱ Tiempo:</span> Varios Días
+                  </div>
+                  <div class="tooltip-row">
+                    <span class="tooltip-label">🧩 Complejidad:</span> Baja
+                  </div>
+                  <div class="tooltip-row">
+                    <span class="tooltip-label">⚠️ Riesgo:</span> Moderado
+                  </div>
+                </div>
+              </button>
+              <button class="card" data-value="8">
+                <span>8</span>
+                <div class="card-tooltip">
+                  <div class="tooltip-row">
+                    <span class="tooltip-label">📌 Esfuerzo:</span> Moderado
+                  </div>
+                  <div class="tooltip-row">
+                    <span class="tooltip-label">⏱ Tiempo:</span> 1 Semana
+                  </div>
+                  <div class="tooltip-row">
+                    <span class="tooltip-label">🧩 Complejidad:</span> Media
+                  </div>
+                  <div class="tooltip-row">
+                    <span class="tooltip-label">⚠️ Riesgo:</span> Moderado
+                  </div>
+                </div>
+              </button>
+              <button class="card" data-value="13">
+                <span>13</span>
+                <div class="card-tooltip">
+                  <div class="tooltip-row">
+                    <span class="tooltip-label">📌 Esfuerzo:</span> Severo
+                  </div>
+                  <div class="tooltip-row">
+                    <span class="tooltip-label">⏱ Tiempo:</span> Varias Semanas
+                  </div>
+                  <div class="tooltip-row">
+                    <span class="tooltip-label">🧩 Complejidad:</span> Media
+                  </div>
+                  <div class="tooltip-row">
+                    <span class="tooltip-label">⚠️ Riesgo:</span> Moderado
+                  </div>
+                </div>
+              </button>
+              <button class="card" data-value="20">
+                <span>20</span>
+                <div class="card-tooltip">
+                  <div class="tooltip-row">
+                    <span class="tooltip-label">📌 Esfuerzo:</span> Máximo
+                  </div>
+                  <div class="tooltip-row">
+                    <span class="tooltip-label">⏱ Tiempo:</span> 1 Mes
+                  </div>
+                  <div class="tooltip-row">
+                    <span class="tooltip-label">🧩 Complejidad:</span> Alta
+                  </div>
+                  <div class="tooltip-row">
+                    <span class="tooltip-label">⚠️ Riesgo:</span> Alto
+                  </div>
+                </div>
+              </button>
+              <button class="card" data-value="40">
+                <span>40</span>
+                <div class="card-tooltip">
+                  <div class="tooltip-row">
+                    <span class="tooltip-label">📌 Esfuerzo:</span> Máximo
+                  </div>
+                  <div class="tooltip-row">
+                    <span class="tooltip-label">⏱ Tiempo:</span> Varios Meses
+                  </div>
+                  <div class="tooltip-row">
+                    <span class="tooltip-label">🧩 Complejidad:</span> Muy Alta
+                  </div>
+                  <div class="tooltip-row">
+                    <span class="tooltip-label">⚠️ Riesgo:</span> Muy Alto
+                  </div>
+                </div>
+              </button>
+              <button class="card" data-value="100">
+                <span>100</span>
+                <div class="card-tooltip">
+                  <div class="tooltip-row">
+                    <span class="tooltip-label">📌 Esfuerzo:</span> Máximo
+                  </div>
+                  <div class="tooltip-row">
+                    <span class="tooltip-label">⏱ Tiempo:</span> Más de 6 meses
+                  </div>
+                  <div class="tooltip-row">
+                    <span class="tooltip-label">🧩 Complejidad:</span> Muy Alta
+                  </div>
+                  <div class="tooltip-row">
+                    <span class="tooltip-label">⚠️ Riesgo:</span> Muy Alto
+                  </div>
+                </div>
+              </button>
+              <button class="card card-special" data-value="?">
+                <span>?</span>
+                <div class="card-tooltip">
+                  <div class="tooltip-row">
+                    <span class="tooltip-label">📌 Esfuerzo:</span> Desconocido
+                  </div>
+                  <div class="tooltip-row">
+                    <span class="tooltip-label">⏱ Tiempo:</span> Indefinido
+                  </div>
+                  <div class="tooltip-row">
+                    <span class="tooltip-label">🧩 Complejidad:</span> Incierta
+                  </div>
+                  <div class="tooltip-row">
+                    <span class="tooltip-label">⚠️ Riesgo:</span> Alto
+                  </div>
+                </div>
+              </button>
             </div>
+          </section>
+
+          <!-- Recommendations Section -->
+          <section
+            class="recommendations-section hidden"
+            id="recommendationsSection"
+          >
+            <div class="section-header-compact">
+              <h3 class="section-title-small">
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M12 16v-4" />
+                  <path d="M12 8h.01" />
+                </svg>
+                Recomendaciones
+              </h3>
+              <button
+                class="btn-refresh"
+                id="refreshRecommendationsBtn"
+                title="Refrescar recomendaciones"
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M23 4v6h-6"></path>
+                  <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                </svg>
+              </button>
+            </div>
+            <div class="recommendation-content" id="recommendationContent">
+              <!-- Recommendations will appear here -->
+            </div>
+          </section>
         </div>
+
+        <!-- Right Column: Stats & Participants -->
+        <div class="right-column">
+          <!-- Vote Count & Statistics Section -->
+          <section class="results-section">
+            <div class="section-header-compact">
+              <h2 class="section-title">
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M3 3v18h18" />
+                  <path d="m19 9-5 5-4-4-3 3" />
+                </svg>
+                Estadísticas
+              </h2>
+            </div>
+
+            <!-- Vote Visibility Toggle Buttons -->
+            <div class="vote-toggle-section">
+              <button class="btn btn-toggle-votes hidden" id="hideVotesBtn">
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
+                  />
+                  <line x1="1" y1="1" x2="23" y2="23" />
+                </svg>
+                Ocultar Votos
+              </button>
+              <button
+                class="btn btn-toggle-votes btn-show-votes"
+                id="showVotesBtn"
+              >
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+                Ver Votos
+              </button>
+            </div>
+
+            <!-- Vote Count - Always Visible -->
+            <div class="vote-count-section">
+              <div class="stat-compact-single">
+                <div class="stat-icon">✓</div>
+                <div>
+                  <div class="stat-label-compact">Votos</div>
+                  <div class="stat-value-compact" id="votesCount">-</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Statistics Cards - Hidden until "Ver Votos" -->
+            <div class="stats-compact hidden" id="statistics">
+              <div class="stat-compact">
+                <div class="stat-icon">📊</div>
+                <div>
+                  <div class="stat-label-compact">Promedio</div>
+                  <div class="stat-value-compact" id="averageValue">-</div>
+                </div>
+              </div>
+              <div class="stat-compact">
+                <div class="stat-icon">📈</div>
+                <div>
+                  <div class="stat-label-compact">Mediana</div>
+                  <div class="stat-value-compact" id="medianValue">-</div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Participants Section (Always Visible - At Bottom) -->
+          <section class="participants-section" id="participantsSection">
+            <div class="section-header-compact">
+              <h2 class="section-title">
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                  <circle cx="9" cy="7" r="4" />
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                </svg>
+                Equipo
+              </h2>
+              <button
+                class="btn-icon btn-add"
+                id="addParticipantBtn"
+                title="Agregar Participante"
+              >
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="8" x2="12" y2="16" />
+                  <line x1="8" y1="12" x2="16" y2="12" />
+                </svg>
+              </button>
+              <button
+                class="btn-icon btn-delete-all"
+                id="clearAllParticipantsBtn"
+                title="Eliminar todos los participantes"
+              >
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                  <circle cx="9" cy="7" r="4" />
+                  <line x1="18" y1="8" x2="23" y2="13" />
+                  <line x1="23" y1="8" x2="18" y2="13" />
+                </svg>
+              </button>
+            </div>
+            <div class="participants-list" id="participantsGrid">
+              <!-- Participants will be added here -->
+            </div>
+          </section>
+        </div>
+      </div>
     </div>
 
     <!-- Add Participant Modal -->
     <div class="modal hidden" id="addParticipantModal">
-        <div class="modal-overlay" id="modalOverlay"></div>
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 class="modal-title">Agregar Participante</h3>
-                <button class="modal-close" id="modalClose">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <line x1="18" y1="6" x2="6" y2="18" />
-                        <line x1="6" y1="6" x2="18" y2="18" />
-                    </svg>
-                </button>
-            </div>
-            <div class="modal-body">
-                <form id="addParticipantForm">
-                    <div class="form-group">
-                        <label for="participantName" class="form-label">Nombre del Participante</label>
-                        <input type="text" id="participantName" class="form-input"
-                            placeholder="Ingresa el nombre completo" autocomplete="off" required />
-                    </div>
-                    <div class="form-actions">
-                        <button type="button" class="btn btn-secondary" id="cancelBtn">Cancelar</button>
-                        <button type="submit" class="btn btn-primary">Agregar</button>
-                    </div>
-                </form>
-            </div>
+      <div class="modal-overlay" id="modalOverlay"></div>
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 class="modal-title">Agregar Participante</h3>
+          <button class="modal-close" id="modalClose">
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
         </div>
+        <div class="modal-body">
+          <form id="addParticipantForm">
+            <div class="form-group">
+              <label for="participantName" class="form-label"
+                >Nombre del Participante</label
+              >
+              <input
+                type="text"
+                id="participantName"
+                class="form-input"
+                placeholder="Ingresa el nombre completo"
+                autocomplete="off"
+                required
+              />
+            </div>
+            <div class="form-actions">
+              <button type="button" class="btn btn-secondary" id="cancelBtn">
+                Cancelar
+              </button>
+              <button type="submit" class="btn btn-primary">Agregar</button>
+            </div>
+          </form>
+        </div>
+      </div>
     </div>
 
     <!-- Lobby / Room Selection Overlay -->
     <div class="lobby-overlay" id="lobbyOverlay">
-        <div class="lobby-content">
-            <div class="logo-section" style="margin-bottom: 2rem; justify-content: center;">
-                <svg class="app-icon" width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                    stroke-width="2">
-                    <path
-                        d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
-                    <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
-                    <line x1="12" y1="22.08" x2="12" y2="12" />
-                </svg>
-                <div style="text-align: left;">
-                    <h1 class="app-title" style="font-size: 1.5rem;">Estimaciones de Equipo</h1>
-                    <p class="app-subtitle">Planning Poker Profesional</p>
-                </div>
-            </div>
-
-            <div class="lobby-card">
-                <h3>Votar en una Sala</h3>
-                <p>Crea una nueva sala para tu equipo o únete a una existente.</p>
-
-                <div class="lobby-actions">
-                    <button class="btn btn-primary" id="createRoomBtn" style="width: 100%; margin-bottom: 1rem;">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2" style="margin-right: 8px;">
-                            <path d="M12 5v14M5 12h14" />
-                        </svg>
-                        Crear Nueva Sala
-                    </button>
-
-                    <div class="separator"><span>o únete con un ID</span></div>
-
-                    <div class="join-group">
-                        <input type="text" id="roomCodeInput" class="form-input"
-                            placeholder="Código de la sala (Ej: alpha-beta)"
-                            style="margin-bottom: 0.5rem; text-align: center;">
-                        <button class="btn btn-secondary" id="joinRoomBtn" style="width: 100%;">Unirse a Sala</button>
-                    </div>
-                </div>
-            </div>
+      <div class="lobby-content">
+        <div
+          class="logo-section"
+          style="margin-bottom: 2rem; justify-content: center"
+        >
+          <svg
+            class="app-icon"
+            width="60"
+            height="60"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path
+              d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"
+            />
+            <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+            <line x1="12" y1="22.08" x2="12" y2="12" />
+          </svg>
+          <div style="text-align: left">
+            <h1 class="app-title" style="font-size: 1.5rem">
+              Estimaciones de Equipo
+            </h1>
+            <p class="app-subtitle">Planning Poker Profesional</p>
+          </div>
         </div>
+
+        <div class="lobby-card">
+          <h3>Votar en una Sala</h3>
+          <p>Crea una nueva sala para tu equipo o únete a una existente.</p>
+
+          <div class="lobby-actions">
+            <button
+              class="btn btn-primary"
+              id="createRoomBtn"
+              style="width: 100%; margin-bottom: 1rem"
+            >
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                style="margin-right: 8px"
+              >
+                <path d="M12 5v14M5 12h14" />
+              </svg>
+              Crear Nueva Sala
+            </button>
+
+            <div class="separator"><span>o únete con un ID</span></div>
+
+            <div class="join-group">
+              <input
+                type="text"
+                id="roomCodeInput"
+                class="form-input"
+                placeholder="Código de la sala (Ej: alpha-beta)"
+                style="margin-bottom: 0.5rem; text-align: center"
+              />
+              <button
+                class="btn btn-secondary"
+                id="joinRoomBtn"
+                style="width: 100%"
+              >
+                Unirse a Sala
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Nickname Entry Overlay -->
     <div class="lobby-overlay hidden" id="nicknameOverlay">
-        <div class="lobby-content">
-            <div class="logo-section" style="margin-bottom: 2rem; justify-content: center;">
-                <svg class="app-icon" width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                    stroke-width="2">
-                    <path
-                        d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
-                    <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
-                    <line x1="12" y1="22.08" x2="12" y2="12" />
-                </svg>
-                <div style="text-align: left;">
-                    <h1 class="app-title" style="font-size: 1.5rem;">Estimaciones de Equipo</h1>
-                    <p class="app-subtitle">Bienvenido a la Sala</p>
-                </div>
-            </div>
-
-            <div class="lobby-card">
-                <h3>¿Cómo te llamas?</h3>
-                <p>Ingresa tu nombre o nickname para empezar a votar con tu equipo.</p>
-
-                <form id="nicknameForm" class="lobby-actions">
-                    <div class="join-group">
-                        <input type="text" id="nicknameInput" class="form-input" placeholder="Tu nombre..."
-                            required style="margin-bottom: 1rem; text-align: center;">
-                        <button type="submit" class="btn btn-primary" style="width: 100%;">
-                            Empezar a Votar
-                        </button>
-                    </div>
-                </form>
-            </div>
+      <div class="lobby-content">
+        <div
+          class="logo-section"
+          style="margin-bottom: 2rem; justify-content: center"
+        >
+          <svg
+            class="app-icon"
+            width="60"
+            height="60"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path
+              d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"
+            />
+            <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+            <line x1="12" y1="22.08" x2="12" y2="12" />
+          </svg>
+          <div style="text-align: left">
+            <h1 class="app-title" style="font-size: 1.5rem">
+              Estimaciones de Equipo
+            </h1>
+            <p class="app-subtitle">Bienvenido a la Sala</p>
+          </div>
         </div>
+
+        <div class="lobby-card">
+          <h3>¿Cómo te llamas?</h3>
+          <p>
+            Ingresa tu nombre o nickname para empezar a votar con tu equipo.
+          </p>
+
+          <form id="nicknameForm" class="lobby-actions">
+            <div class="join-group">
+              <input
+                type="text"
+                id="nicknameInput"
+                class="form-input"
+                placeholder="Tu nombre..."
+                required
+                style="margin-bottom: 1rem; text-align: center"
+              />
+              <button type="submit" class="btn btn-primary" style="width: 100%">
+                Empezar a Votar
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
     </div>
 
     <script src="app.js"></script>
-</body>
-
+  </body>
 </html>
