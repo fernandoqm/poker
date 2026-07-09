@@ -109,6 +109,16 @@ const elements = {
   votingSection: document.getElementById("votingSection"),
   toggleCardsBtn: document.getElementById("toggleCardsBtn"),
   cardsGridContainer: document.getElementById("cardsContainer"),
+  // Calculator Elements
+  openCalculatorBtn: document.getElementById("openCalculatorBtn"),
+  calculatorModal: document.getElementById("calculatorModal"),
+  calculatorModalOverlay: document.getElementById("calculatorModalOverlay"),
+  calculatorModalClose: document.getElementById("calculatorModalClose"),
+  calcCriteria: document.getElementById("calcCriteria"),
+  calcResultValue: document.getElementById("calcResultValue"),
+  calcResultHint: document.getElementById("calcResultHint"),
+  calcCancelBtn: document.getElementById("calcCancelBtn"),
+  calcUseBtn: document.getElementById("calcUseBtn"),
   // Lobby Elements
   lobbyOverlay: document.getElementById("lobbyOverlay"),
   nicknameOverlay: document.getElementById("nicknameOverlay"),
@@ -131,6 +141,131 @@ function openModal() {
 function closeModal() {
   elements.addParticipantModal.classList.add("hidden");
   elements.addParticipantForm.reset();
+}
+
+// ===== Estimation Calculator =====
+// All 4 criteria carry equal weight, per standard story-point theory: points
+// represent effort + complexity + risk, and time is a correlated signal, not
+// the driver. Tiempo has more selectable positions (10 vs. 5) for finer input
+// precision, but each criterion's level is normalized to a common 1-5 scale
+// before summing, so no criterion outweighs another just for having more ticks.
+const CALC_SCORE_MAP = [
+  { max: 4.22, value: "0.5" },
+  { max: 4.67, value: "1" },
+  { max: 6.61, value: "2" },
+  { max: 9.56, value: "3" },
+  { max: 11.5, value: "5" },
+  { max: 12.94, value: "8" },
+  { max: 15.39, value: "13" },
+  { max: 18.33, value: "20" },
+  { max: 19.78, value: "40" },
+  { max: Infinity, value: "100" },
+];
+
+let calcScores = {};
+// Populated by initFader(): criterion -> total selectable positions on its fader
+const criterionLevels = {};
+
+// Populated by initCalculatorFaders(): criterion -> setLevel(level) function
+const faderSetters = {};
+
+function getSuggestedCard(total) {
+  const match = CALC_SCORE_MAP.find((row) => total <= row.max);
+  return match ? match.value : null;
+}
+
+// Rescales a criterion's raw level onto a common 1-5 scale, regardless of
+// how many positions that criterion's fader actually has.
+function normalizedScore(criterion) {
+  const level = calcScores[criterion];
+  const levels = criterionLevels[criterion];
+  return 1 + ((level - 1) / (levels - 1)) * 4;
+}
+
+function updateCalcResult() {
+  const total = Object.keys(calcScores).reduce(
+    (sum, criterion) => sum + normalizedScore(criterion),
+    0,
+  );
+  const suggested = getSuggestedCard(total);
+
+  elements.calcResultValue.textContent = suggested;
+  elements.calcResultHint.textContent = `Puntaje total: ${total.toFixed(1)}/20`;
+  elements.calcUseBtn.dataset.value = suggested;
+}
+
+function levelFromClientY(track, clientY, levels) {
+  const rect = track.getBoundingClientRect();
+  const ratio = 1 - (clientY - rect.top) / rect.height;
+  const level = Math.round(ratio * (levels - 1)) + 1;
+  return Math.min(levels, Math.max(1, level));
+}
+
+function initFader(track) {
+  const group = track.closest(".calc-group");
+  const criterion = group.dataset.criterion;
+  const labels = group.dataset.labels.split(",");
+  const levels = labels.length;
+  const handle = track.querySelector(".calc-fader-handle");
+  const valueLabel = group.querySelector(".calc-slider-value");
+  const ticksContainer = track.querySelector(".calc-fader-ticks");
+
+  criterionLevels[criterion] = levels;
+
+  ticksContainer.innerHTML = "";
+  for (let i = 0; i < levels; i++) {
+    ticksContainer.appendChild(document.createElement("span"));
+  }
+
+  function setLevel(level) {
+    calcScores[criterion] = level;
+    const pct = ((level - 1) / (levels - 1)) * 100;
+    handle.style.bottom = `${pct}%`;
+    valueLabel.textContent = labels[level - 1];
+    updateCalcResult();
+  }
+
+  track.addEventListener("pointerdown", (e) => {
+    track.classList.add("dragging");
+    setLevel(levelFromClientY(track, e.clientY, levels));
+    try {
+      handle.setPointerCapture(e.pointerId);
+    } catch (err) {
+      // Ignore: capture is a drag-tracking nicety, not required for the click-to-set behavior.
+    }
+  });
+  track.addEventListener("pointermove", (e) => {
+    if (!track.classList.contains("dragging")) return;
+    setLevel(levelFromClientY(track, e.clientY, levels));
+  });
+
+  faderSetters[criterion] = () => setLevel(Math.ceil(levels / 2));
+  setLevel(Math.ceil(levels / 2));
+}
+
+function initCalculatorFaders() {
+  elements.calcCriteria
+    .querySelectorAll(".calc-fader-track")
+    .forEach(initFader);
+
+  // Safety net: if a drag ends outside the track (or setPointerCapture
+  // silently failed), this guarantees "dragging" always gets cleared.
+  const stopDragging = () => {
+    elements.calcCriteria
+      .querySelectorAll(".calc-fader-track.dragging")
+      .forEach((t) => t.classList.remove("dragging"));
+  };
+  window.addEventListener("pointerup", stopDragging);
+  window.addEventListener("pointercancel", stopDragging);
+}
+
+function openCalculatorModal() {
+  elements.calculatorModal.classList.remove("hidden");
+}
+
+function closeCalculatorModal() {
+  elements.calculatorModal.classList.add("hidden");
+  Object.values(faderSetters).forEach((resetLevel) => resetLevel());
 }
 
 // ===== Participant Functions =====
@@ -735,6 +870,19 @@ function initEventListeners() {
   // Toggle voting cards visibility
   elements.toggleCardsBtn.addEventListener("click", toggleCardsSection);
 
+  // Estimation calculator
+  elements.openCalculatorBtn.addEventListener("click", openCalculatorModal);
+  elements.calculatorModalClose.addEventListener("click", closeCalculatorModal);
+  elements.calculatorModalOverlay.addEventListener("click", closeCalculatorModal);
+  elements.calcCancelBtn.addEventListener("click", closeCalculatorModal);
+  elements.calcUseBtn.addEventListener("click", () => {
+    const value = elements.calcUseBtn.dataset.value;
+    if (value) {
+      vote(value);
+      closeCalculatorModal();
+    }
+  });
+
   // New round
   elements.newRoundBtn.addEventListener("click", newRound);
 
@@ -781,12 +929,14 @@ function initEventListeners() {
 
   // Keyboard shortcuts
   document.addEventListener("keydown", (e) => {
+    if (e.key !== "Escape") return;
+
     // Escape key to close modal
-    if (
-      e.key === "Escape" &&
-      !elements.addParticipantModal.classList.contains("hidden")
-    ) {
+    if (!elements.addParticipantModal.classList.contains("hidden")) {
       closeModal();
+    }
+    if (!elements.calculatorModal.classList.contains("hidden")) {
+      closeCalculatorModal();
     }
   });
 }
@@ -794,6 +944,7 @@ function initEventListeners() {
 // ===== Initialization =====
 function init() {
   initEventListeners();
+  initCalculatorFaders();
   loadFromLocalStorage();
 
   // Check for room in URL

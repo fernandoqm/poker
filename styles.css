@@ -270,6 +270,214 @@ body {
   border-color: var(--color-accent);
 }
 
+/* ===== Calculator Button ===== */
+.btn-calculator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(139, 92, 246, 0.1);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: var(--radius-md);
+  color: var(--color-purple);
+  cursor: pointer;
+  padding: 6px 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  transition: all var(--transition-base);
+}
+
+.btn-calculator:hover {
+  background: var(--color-purple);
+  color: white;
+  border-color: var(--color-purple);
+  transform: translateY(-1px);
+}
+
+/* ===== Estimation Calculator Modal ===== */
+.modal-content-lg {
+  max-width: 640px;
+}
+
+.calculator-intro {
+  color: var(--color-text-secondary);
+  font-size: 0.8125rem;
+  margin-bottom: var(--spacing-lg);
+  line-height: 1.6;
+}
+
+.calc-criteria {
+  display: flex;
+  justify-content: space-around;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-lg) var(--spacing-sm);
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--spacing-lg);
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.calc-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-sm);
+  flex: 1;
+  min-width: 0;
+}
+
+.calc-group-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* ===== Fader Slider (mixer-style) ===== */
+.calc-fader-track {
+  position: relative;
+  width: 44px;
+  height: 160px;
+  display: flex;
+  justify-content: center;
+  touch-action: none;
+}
+
+.calc-fader-rail {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 6px;
+  transform: translateX(-50%);
+  background: linear-gradient(
+    180deg,
+    #0b1120 0%,
+    #1e293b 50%,
+    #0b1120 100%
+  );
+  border-radius: 3px;
+  box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+}
+
+.calc-fader-ticks {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 16px;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  pointer-events: none;
+}
+
+.calc-fader-ticks span {
+  display: block;
+  width: 100%;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 2px;
+}
+
+.calc-fader-handle {
+  position: absolute;
+  left: 50%;
+  bottom: 50%;
+  width: 34px;
+  height: 16px;
+  transform: translate(-50%, 50%);
+  background: linear-gradient(
+    180deg,
+    #f1f5f9 0%,
+    #94a3b8 45%,
+    #64748b 55%,
+    #cbd5e1 100%
+  );
+  border: 1px solid rgba(0, 0, 0, 0.5);
+  border-radius: 4px;
+  box-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  cursor: grab;
+  transition: box-shadow var(--transition-fast);
+}
+
+.calc-fader-handle::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 22px;
+  height: 2px;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 2px;
+}
+
+.calc-fader-handle:hover {
+  box-shadow:
+    0 2px 8px rgba(34, 211, 238, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.calc-fader-track.dragging .calc-fader-handle {
+  cursor: grabbing;
+  box-shadow:
+    0 0 12px rgba(34, 211, 238, 0.7),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.calc-slider-value {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-accent);
+  text-align: center;
+  min-height: 1.2em;
+}
+
+.calc-result {
+  text-align: center;
+  padding: var(--spacing-lg);
+  background: linear-gradient(
+    135deg,
+    rgba(99, 102, 241, 0.1) 0%,
+    rgba(34, 211, 238, 0.1) 100%
+  );
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: var(--radius-lg);
+}
+
+.calc-result-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--color-text-secondary);
+  margin-bottom: var(--spacing-xs);
+}
+
+.calc-result-value {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: var(--color-accent);
+  line-height: 1.2;
+}
+
+.calc-result-hint {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  margin-top: var(--spacing-xs);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
 .btn-toggle-section .icon-chevron {
   transition: transform 0.3s ease;
 }

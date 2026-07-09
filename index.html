@@ -106,6 +106,33 @@
               </h2>
               <div class="section-header-actions">
                 <button
+                  class="btn-calculator"
+                  id="openCalculatorBtn"
+                  title="Calculadora de estimación"
+                >
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <rect x="4" y="2" width="16" height="20" rx="2" />
+                    <line x1="8" y1="6" x2="16" y2="6" />
+                    <line x1="8" y1="10" x2="8" y2="10.01" />
+                    <line x1="12" y1="10" x2="12" y2="10.01" />
+                    <line x1="16" y1="10" x2="16" y2="10.01" />
+                    <line x1="8" y1="14" x2="8" y2="14.01" />
+                    <line x1="12" y1="14" x2="12" y2="14.01" />
+                    <line x1="16" y1="14" x2="16" y2="14.01" />
+                    <line x1="8" y1="18" x2="8" y2="18.01" />
+                    <line x1="12" y1="18" x2="12" y2="18.01" />
+                    <line x1="16" y1="18" x2="16" y2="18.01" />
+                  </svg>
+                  Calculadora
+                </button>
+                <button
                   class="btn-toggle-section"
                   id="toggleCardsBtn"
                   title="Ocultar/Mostrar tarjetas"
@@ -695,6 +722,110 @@
               <button type="submit" class="btn btn-primary">Agregar</button>
             </div>
           </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Estimation Calculator Modal -->
+    <div class="modal hidden" id="calculatorModal">
+      <div class="modal-overlay" id="calculatorModalOverlay"></div>
+      <div class="modal-content modal-content-lg">
+        <div class="modal-header">
+          <h3 class="modal-title">Calculadora de Estimación</h3>
+          <button class="modal-close" id="calculatorModalClose">
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p class="calculator-intro">
+            Califica cada criterio para obtener una sugerencia de puntaje
+            basada en la tabla de referencia.
+          </p>
+
+          <div class="calc-criteria" id="calcCriteria">
+            <div
+              class="calc-group"
+              data-criterion="esfuerzo"
+              data-labels="Mínimo,Leve,Moderado,Severo,Máximo"
+            >
+              <div class="calc-group-label">📌 Esfuerzo</div>
+              <div class="calc-fader-track">
+                <div class="calc-fader-rail"></div>
+                <div class="calc-fader-ticks"></div>
+                <div class="calc-fader-handle"></div>
+              </div>
+              <div class="calc-slider-value"></div>
+            </div>
+
+            <div
+              class="calc-group"
+              data-criterion="tiempo"
+              data-labels="&lt; 1 Hora,1 Hora,Varias Horas,1 Día,Varios Días,1 Semana,Varias Semanas,1 Mes,Varios Meses,Más de 6 meses"
+            >
+              <div class="calc-group-label">⏱ Tiempo</div>
+              <div class="calc-fader-track">
+                <div class="calc-fader-rail"></div>
+                <div class="calc-fader-ticks"></div>
+                <div class="calc-fader-handle"></div>
+              </div>
+              <div class="calc-slider-value"></div>
+            </div>
+
+            <div
+              class="calc-group"
+              data-criterion="complejidad"
+              data-labels="Poca,Baja,Media,Alta,Muy Alta"
+            >
+              <div class="calc-group-label">🧩 Complejidad</div>
+              <div class="calc-fader-track">
+                <div class="calc-fader-rail"></div>
+                <div class="calc-fader-ticks"></div>
+                <div class="calc-fader-handle"></div>
+              </div>
+              <div class="calc-slider-value"></div>
+            </div>
+
+            <div
+              class="calc-group"
+              data-criterion="riesgo"
+              data-labels="Ninguno,Bajo,Moderado,Alto,Muy Alto"
+            >
+              <div class="calc-group-label">⚠️ Riesgo</div>
+              <div class="calc-fader-track">
+                <div class="calc-fader-rail"></div>
+                <div class="calc-fader-ticks"></div>
+                <div class="calc-fader-handle"></div>
+              </div>
+              <div class="calc-slider-value"></div>
+            </div>
+          </div>
+
+          <div class="calc-result">
+            <div class="calc-result-label">Puntaje Sugerido</div>
+            <div class="calc-result-value" id="calcResultValue">-</div>
+            <div class="calc-result-hint" id="calcResultHint">
+              Puntaje total: -
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn btn-secondary" id="calcCancelBtn">
+              Cerrar
+            </button>
+            <button type="button" class="btn btn-primary" id="calcUseBtn">
+              Usar esta puntuación
+            </button>
+          </div>
         </div>
       </div>
     </div>
